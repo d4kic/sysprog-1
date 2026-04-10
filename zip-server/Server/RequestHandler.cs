@@ -14,14 +14,13 @@ namespace zip_server.Server
     {
         private static readonly string fileDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\Files");
 
-        public static void HandleRequest(object obj)
+        public static void HandleRequest(object? obj)
         {
-            HttpListenerContext context = (HttpListenerContext)obj;
-            Console.WriteLine(fileDir);
+            HttpListenerContext context = (HttpListenerContext)obj!;
 
             try
             {
-                string filespath = context.Request.Url.AbsolutePath.TrimStart('/');
+                string? filespath = context.Request.Url?.AbsolutePath.TrimStart('/');
                 if (string.IsNullOrEmpty(filespath))
                 {
                     SendText(context, "Ne postoji folder!");
@@ -64,6 +63,7 @@ namespace zip_server.Server
 
         static void SendZip(HttpListenerContext context, byte[] data)
         {
+            context.Response.ContentType = "application/zip";
             context.Response.AddHeader("Content-Disposition", "attachment; filename=files.zip");
             context.Response.ContentLength64 = data.Length;
             context.Response.OutputStream.Write(data, 0, data.Length);
@@ -72,7 +72,7 @@ namespace zip_server.Server
 
         static void SendText(HttpListenerContext context, string text)
         {
-            byte[] buffer = System.Text.Encoding.UTF8.GetBytes(text);
+            byte[] buffer = Encoding.UTF8.GetBytes(text);
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             context.Response.OutputStream.Close();
