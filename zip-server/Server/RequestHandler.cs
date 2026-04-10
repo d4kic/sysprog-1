@@ -23,15 +23,16 @@ namespace zip_server.Server
                 string? filespath = context.Request.Url?.AbsolutePath.TrimStart('/');
                 if (string.IsNullOrEmpty(filespath))
                 {
-                    SendText(context, "Ne postoji folder!");
+                    SendText(context, "Nisu prosledjeni parametri zahtevu!");
                     return;
                 }
 
-                string[] reqFiles = filespath.Split('&');
+                string[] reqFiles = filespath.Split('&', StringSplitOptions.RemoveEmptyEntries);
                 var found = new List<string>();
                 foreach (string filename in reqFiles)
                 {
-                    string filepath = Path.Combine(fileDir, filename);
+                    string safepath = Path.GetFileName(filename);
+                    string filepath = Path.Combine(fileDir, safepath);
                     if (File.Exists(filepath))
                         found.Add(filepath);
                 }
@@ -41,17 +42,20 @@ namespace zip_server.Server
                     return;
                 }
 
-                MemoryStream ms = new MemoryStream();
-                ZipOutputStream zips = new ZipOutputStream(ms);
-                foreach (string filename in found)
+                using MemoryStream ms = new MemoryStream();
+                using (ZipOutputStream zips = new ZipOutputStream(ms))
                 {
-                    byte[] data = File.ReadAllBytes(filename);
-                    ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
-                    zips.PutNextEntry(entry);
-                    zips.Write(data, 0, data.Length);
-                    zips.CloseEntry();
+                    foreach (string filename in found)
+                    {
+                        byte[] data = File.ReadAllBytes(filename);
+                        ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
+                        zips.PutNextEntry(entry);
+                        zips.Write(data, 0, data.Length);
+                        zips.CloseEntry();
+                    }
+                    zips.Close();
                 }
-                zips.Close();
+
                 byte[] zipData = ms.ToArray();
                 SendZip(context, zipData);
             }
