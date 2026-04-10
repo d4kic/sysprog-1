@@ -1,4 +1,4 @@
-﻿using zip_server.Server;
+﻿using zip_server.src.Server;
 
-WebServer server = new WebServer();
+WebServer server = new WebServer(4);
 server.Start();

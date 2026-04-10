@@ -5,25 +5,30 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace zip_server.Server
+namespace zip_server.src.Server
 {
     internal class WebServer
     {
-        readonly HttpListener listener = new HttpListener();
+        private readonly HttpListener listener = new HttpListener();
+        private readonly RequestQueue queue = new RequestQueue();
+        private readonly WorkerPool pool;
 
-        public WebServer()
+        public WebServer(int workerCount)
         {
             listener.Prefixes.Add("http://localhost:5050/");
+            pool = new WorkerPool(queue, workerCount);
         }
 
         public void Start()
         {
             listener.Start();
             Console.WriteLine("Server radi na http://localhost:5050/");
+            pool.Start();
+
             while (true)
             {
                 HttpListenerContext context = listener.GetContext();
-                ThreadPool.QueueUserWorkItem(RequestHandler.HandleRequest, context);
+                queue.EnqueueRequest(context);
             }
         }
     }

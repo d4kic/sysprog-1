@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using zip_server.src;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace zip_server.Server
+namespace zip_server.src.Server
 {
     internal class RequestHandler
     {
@@ -22,7 +22,7 @@ namespace zip_server.Server
             try
             {
                 string? filespath = context.Request.Url?.AbsolutePath.TrimStart('/');
-                Logger.Log("Zahtev: " + filespath);
+                Logger.Log("Primljen zahtev: " + filespath);
                 if (string.IsNullOrEmpty(filespath))
                 {
                     Logger.Log("Primljen zahtev bez parametara.");
