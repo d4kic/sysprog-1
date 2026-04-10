@@ -9,8 +9,8 @@ namespace zip_server.src.Server
 {
     internal class WebServer
     {
-        private readonly HttpListener listener = new HttpListener();
-        private readonly RequestQueue queue = new RequestQueue();
+        private readonly HttpListener listener = new();
+        private readonly RequestQueue queue = new();
         private readonly WorkerPool pool;
 
         public WebServer(int workerCount)

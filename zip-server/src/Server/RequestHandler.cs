@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using zip_server.src;
+using zip_server.src.Cache;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace zip_server.src.Server
@@ -31,6 +32,7 @@ namespace zip_server.src.Server
                 }
 
                 string[] reqFiles = filespath.Split('&', StringSplitOptions.RemoveEmptyEntries);
+                string cacheKey = string.Join('&', reqFiles);
                 var found = new List<string>();
                 foreach (string filename in reqFiles)
                 {
@@ -45,25 +47,34 @@ namespace zip_server.src.Server
                     SendText(context, "Ne postoje zahtevani fajlovi!");
                     return;
                 }
-
-                using MemoryStream ms = new MemoryStream();
-                using (ZipOutputStream zips = new ZipOutputStream(ms))
+                if (CacheManager.TryGet(cacheKey, out byte[] cached))
                 {
-                    foreach (string filename in found)
-                    {
-                        byte[] data = File.ReadAllBytes(filename);
-                        ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
-                        zips.PutNextEntry(entry);
-                        zips.Write(data, 0, data.Length);
-                        zips.CloseEntry();
-                        Logger.Log("Zipovan fajl: " + filename);
-                    }
-                    zips.Close();
+                    Logger.Log("Pronadjeno u cache: " + cacheKey);
+                    SendZip(context, cached);
+                    return;
                 }
 
-                byte[] zipData = ms.ToArray();
-                SendZip(context, zipData);
-                Logger.Log("Zip fajl poslat.");
+                lock (StampedeLock.Get(cacheKey))
+                {
+                    using MemoryStream ms = new MemoryStream();
+                    using (ZipOutputStream zips = new ZipOutputStream(ms))
+                    {
+                        foreach (string filename in found)
+                        {
+                            byte[] data = File.ReadAllBytes(filename);
+                            ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
+                            zips.PutNextEntry(entry);
+                            zips.Write(data, 0, data.Length);
+                            zips.CloseEntry();
+                            Logger.Log("Zipovan fajl: " + filename);
+                        }
+                    }
+
+                    byte[] zipData = ms.ToArray();
+                    CacheManager.Set(cacheKey, zipData);
+                    SendZip(context, zipData);
+                    Logger.Log("Zip fajl poslat.");
+                }
             }
             catch (Exception ex)
             {
