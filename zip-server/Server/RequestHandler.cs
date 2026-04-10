@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using zip_server.src;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace zip_server.Server
@@ -21,8 +22,10 @@ namespace zip_server.Server
             try
             {
                 string? filespath = context.Request.Url?.AbsolutePath.TrimStart('/');
+                Logger.Log("Zahtev: " + filespath);
                 if (string.IsNullOrEmpty(filespath))
                 {
+                    Logger.Log("Primljen zahtev bez parametara.");
                     SendText(context, "Nisu prosledjeni parametri zahtevu!");
                     return;
                 }
@@ -38,6 +41,7 @@ namespace zip_server.Server
                 }
                 if (found.Count == 0)
                 {
+                    Logger.Log("Zahtevani fajlovi ne postoje na serveru.");
                     SendText(context, "Ne postoje zahtevani fajlovi!");
                     return;
                 }
@@ -52,15 +56,18 @@ namespace zip_server.Server
                         zips.PutNextEntry(entry);
                         zips.Write(data, 0, data.Length);
                         zips.CloseEntry();
+                        Logger.Log("Zipovan fajl: " + filename);
                     }
                     zips.Close();
                 }
 
                 byte[] zipData = ms.ToArray();
                 SendZip(context, zipData);
+                Logger.Log("Zip fajl poslat.");
             }
             catch (Exception ex)
             {
+                Logger.Log("Error: " + ex.Message);
                 SendText(context, "Error: " + ex.Message);
             }
         }
