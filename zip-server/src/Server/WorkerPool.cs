@@ -24,8 +24,12 @@ namespace zip_server.src.Server
             {
                 ThreadPool.QueueUserWorkItem(_ =>
                 {
-                    HttpListenerContext? context = queue?.DequeueRequest();
-                    RequestHandler.HandleRequest(context);
+                    while (true)
+                    {
+                        HttpListenerContext? context = queue?.DequeueRequest();
+                        if (context != null) 
+                            RequestHandler.HandleRequest(context);
+                    }
                 });
             }
         }

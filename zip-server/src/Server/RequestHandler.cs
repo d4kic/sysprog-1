@@ -70,6 +70,10 @@ namespace zip_server.src.Server
                 Logger.Log("Error: " + ex.Message);
                 SendText(context, "Error: " + ex.Message);
             }
+            finally
+            {
+                context.Response.Close();
+            }
         }
 
         static void SendZip(HttpListenerContext context, byte[] data)
@@ -78,7 +82,6 @@ namespace zip_server.src.Server
             context.Response.AddHeader("Content-Disposition", "attachment; filename=files.zip");
             context.Response.ContentLength64 = data.Length;
             context.Response.OutputStream.Write(data, 0, data.Length);
-            context.Response.OutputStream.Close();
         }
 
         static void SendText(HttpListenerContext context, string text)
@@ -86,7 +89,6 @@ namespace zip_server.src.Server
             byte[] buffer = Encoding.UTF8.GetBytes(text);
             context.Response.ContentLength64 = buffer.Length;
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
-            context.Response.OutputStream.Close();
         }
     }
 }
