@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace zip_server.src.Server
 {
@@ -22,7 +17,7 @@ namespace zip_server.src.Server
         public void Start()
         {
             listener.Start();
-            Console.WriteLine("Server radi na http://localhost:5050/");
+            Console.WriteLine($"[{DateTime.Now}] Server radi na http://localhost:5050/");
             pool.Start();
 
             while (true)

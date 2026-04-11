@@ -1,14 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
-using System;
-using System.Collections.Generic;
-using System.IO.Enumeration;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using zip_server.src;
 using zip_server.src.Cache;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace zip_server.src.Server
 {
