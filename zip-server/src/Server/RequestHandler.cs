@@ -55,25 +55,27 @@ namespace zip_server.src.Server
 
                 lock (StampedeLock.Get(cacheKey))
                 {
-                    using MemoryStream ms = new MemoryStream();
-                    using (ZipOutputStream zips = new ZipOutputStream(ms))
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        foreach (string filename in found)
+                        using (ZipOutputStream zips = new ZipOutputStream(ms))
                         {
-                            byte[] data = File.ReadAllBytes(filename);
-                            ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
-                            zips.PutNextEntry(entry);
-                            zips.Write(data, 0, data.Length);
-                            zips.CloseEntry();
-                            Logger.Log("Zipovan fajl: " + filename);
+                            foreach (string filename in found)
+                            {
+                                byte[] data = File.ReadAllBytes(filename);
+                                ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
+                                zips.PutNextEntry(entry);
+                                zips.Write(data, 0, data.Length);
+                                zips.CloseEntry();
+                                Logger.Log("Zipovan fajl: " + filename);
+                            }
+                            zips.Finish();
                         }
-                        zips.Finish();
-                    }
 
-                    byte[] zipData = ms.ToArray();
-                    CacheManager.Set(cacheKey, zipData);
-                    SendZip(context, zipData);
-                    Logger.Log("Zip fajl poslat.");
+                        byte[] zipData = ms.ToArray();
+                        CacheManager.Set(cacheKey, zipData);
+                        SendZip(context, zipData);
+                        Logger.Log("Zip fajl poslat.");
+                    }
                 }
             }
             catch (Exception ex)

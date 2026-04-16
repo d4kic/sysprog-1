@@ -13,10 +13,14 @@ namespace zip_server.src.Cache
 
             if (cache.TryGetValue(key, out var item))
             {
-                if (DateTime.Now - item.CreatedAt < ttl)
+                if (DateTime.UtcNow - item.CreatedAt < ttl)
                 {
                     data = item.Data!;
                     return true;
+                }
+                else
+                {
+                    cache.TryRemove(key, out _);
                 }
             }
 
@@ -28,7 +32,7 @@ namespace zip_server.src.Cache
             cache[key] = new CacheItem
             {
                 Data = data,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow
             };
         }
     }
