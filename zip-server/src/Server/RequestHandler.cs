@@ -69,12 +69,14 @@ namespace zip_server.src.Server
                         {
                             foreach (string filename in found)
                             {
-                                byte[] data = File.ReadAllBytes(filename);
-                                ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
-                                zips.PutNextEntry(entry);
-                                zips.Write(data, 0, data.Length);
-                                zips.CloseEntry();
-                                Logger.Log("Zipovan fajl: " + filename);
+                                using (FileStream fs = File.OpenRead(filename))
+                                {
+                                    ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
+                                    zips.PutNextEntry(entry);
+                                    fs.CopyTo(zips);
+                                    zips.CloseEntry();
+                                    Logger.Log("Zipovan fajl: " + filename);
+                                }
                             }
                             zips.Finish();
                         }
@@ -96,6 +98,7 @@ namespace zip_server.src.Server
         static void SendZip(HttpListenerContext context, byte[] data)
         {
             context.Response.AddHeader("Content-Disposition", "attachment; filename=files.zip");
+            context.Response.StatusCode = 200;
             context.Response.ContentType = "application/zip";
             context.Response.ContentLength64 = data.Length;
             context.Response.OutputStream.Write(data, 0, data.Length);

@@ -6,7 +6,7 @@
         
         public static void Log(string msg)
         {
-            lock(lockObj)
+            lock (lockObj)
             {
                 Console.WriteLine($"[{DateTime.Now}] {msg}");
             }
