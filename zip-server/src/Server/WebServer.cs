@@ -17,13 +17,30 @@ namespace zip_server.src.Server
         public void Start()
         {
             listener.Start();
-            Console.WriteLine($"[{DateTime.Now}] Server radi na http://localhost:5050/");
             pool.Start();
+            Console.WriteLine($"[{DateTime.Now}] Server radi na http://localhost:5050/");
+            Console.WriteLine("Dugme Z za shutdown...");
+
+            new Thread(() =>
+            {
+                while (Console.ReadKey(true).Key != ConsoleKey.Z) { }
+                listener.Stop();
+            })
+            {
+                IsBackground = true
+            }.Start();
 
             while (true)
             {
-                HttpListenerContext context = listener.GetContext();
-                queue.EnqueueRequest(context);
+                try
+                {
+                    HttpListenerContext context = listener.GetContext();
+                    queue.EnqueueRequest(context);
+                }
+                catch
+                {
+                    break;
+                }
             }
         }
     }
